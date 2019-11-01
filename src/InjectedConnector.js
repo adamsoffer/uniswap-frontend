@@ -1,7 +1,9 @@
 import { Connectors } from 'web3-react'
+
 const { Connector, ErrorCodeMixin } = Connectors
 
 const InjectedConnectorErrorCodes = ['ETHEREUM_ACCESS_DENIED', 'NO_WEB3', 'UNLOCK_REQUIRED']
+
 export default class InjectedConnector extends ErrorCodeMixin(Connector, InjectedConnectorErrorCodes) {
   constructor(args = {}) {
     super(args)

@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useRef } from 'react'
+import React, { useState, useReducer, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 import { useWeb3Context, Connectors } from 'web3-react'
@@ -143,6 +143,8 @@ export default function Web3Status() {
 
   const hasPendingTransactions = !!pending.length
 
+  const [connectorNameFromURL, setConnectorNameFromURL] = useState('Network')
+
   const [{ open: walletModalIsOpen, error: walletModalError }, dispatch] = useReducer(
     walletModalReducer,
     walletModalInitialState
@@ -159,6 +161,10 @@ export default function Web3Status() {
 
   // janky logic to detect log{ins,outs}...
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const myParam = urlParams.get('connector')
+    setConnectorNameFromURL(myParam ? myParam.charAt(0).toUpperCase() + myParam.slice(1) : 'Injected')
+
     // if the injected connector is not active...
     const { ethereum } = window
     if (connectorName !== 'Injected') {
@@ -168,7 +174,7 @@ export default function Web3Status() {
           // if calling enable won't pop an approve modal, then try to activate injected...
           library.listAccounts().then(accounts => {
             if (accounts.length >= 1) {
-              setConnector('Injected', { suppressAndThrowErrors: true })
+              setConnector(connectorNameFromURL, { suppressAndThrowErrors: true })
                 .then(() => {
                   setError()
                 })
@@ -209,13 +215,15 @@ export default function Web3Status() {
         }
       }
     }
-  }, [connectorName, setConnector])
+  }, [connectorName, setConnector, connectorNameFromURL])
 
   function onClick() {
     if (walletModalError) {
       openWalletModal()
+    } else if (connectorNameFromURL === 'Portis') {
+      setConnector(connectorNameFromURL)
     } else if (connectorName === 'Network' && (window.ethereum || window.web3)) {
-      setConnector('Injected', { suppressAndThrowErrors: true }).catch(error => {
+      setConnector(connectorNameFromURL, { suppressAndThrowErrors: true }).catch(error => {
         if (error.code === Connector.errorCodes.UNSUPPORTED_NETWORK) {
           setError(error)
         }

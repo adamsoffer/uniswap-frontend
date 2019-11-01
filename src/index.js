@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
-import Web3Provider from 'web3-react'
+import Web3Provider, { Connectors } from 'web3-react'
 
 import ThemeProvider, { GlobalStyle } from './theme'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from './contexts/LocalStorage'
@@ -15,6 +15,7 @@ import AllBalancesContextProvider from './contexts/AllBalances'
 import App from './pages/App'
 import NetworkOnlyConnector from './NetworkOnlyConnector'
 import InjectedConnector from './InjectedConnector'
+import PortisApi from '@portis/web3'
 
 import './i18n'
 
@@ -25,9 +26,23 @@ if (process.env.NODE_ENV === 'production') {
 }
 ReactGA.pageview(window.location.pathname + window.location.search)
 
+const { PortisConnector } = Connectors
+
+const Portis = new PortisConnector({
+  api: PortisApi,
+  dAppId: process.env.REACT_APP_PORTIS_DAPP_ID,
+  network: 'mainnet'
+})
+
 const Network = new NetworkOnlyConnector({ providerURL: process.env.REACT_APP_NETWORK_URL || '' })
 const Injected = new InjectedConnector({ supportedNetworks: [Number(process.env.REACT_APP_NETWORK_ID || '1')] })
-const connectors = { Injected, Network }
+// const Portis = new PortisConnector({
+//   api: PortisApi,
+//   dAppId: process.env.REACT_APP_PORTIS_DAPP_ID,
+//   network: 'mainnet'
+// })
+
+const connectors = { Portis, Injected, Network }
 
 function ContextProviders({ children }) {
   return (
